@@ -7,26 +7,86 @@ from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
+class User(Base):
+    __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    username = Column(String(250), nullable=False, unique=True)
+    email = Column(String(250), nullable=False, unique=True)
+    password = Column(String(250), nullable=False)
+    bio = Column(String(250))
+    profile_picture = Column(String(250))
+    stories = relationship("Story")
+    followers = relationship("Follower", foreign_keys='Follower.user_from_id')
+    followings = relationship("Follower", foreign_keys='Follower.user_to_id')
+    reels = relationship("Reel")
+    messages_sent = relationship("Message", foreign_keys='Message.sender_id')
+    messages_received = relationship("Message", foreign_keys='Message.receiver_id')
+    posts = relationship("Post")
+    comments = relationship("Comment")
+    likes = relationship("Like")
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
+class Story(Base):
+    __tablename__ = 'story'
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    content = Column(String(250))
+    video_url = Column(String(250))
+    image_url = Column(String(250))
+    user = relationship("User")
 
-    def to_dict(self):
-        return {}
+class Follower(Base):
+    __tablename__ = 'follower'
+    id = Column(Integer, primary_key=True)
+    user_from_id = Column(Integer, ForeignKey('user.id'))
+    user_to_id = Column(Integer, ForeignKey('user.id'))
+    user_from = relationship("User")
+    user_to = relationship("User")
+
+class Reel(Base):
+    __tablename__ = 'reel'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    video_url = Column(String(250))
+    caption = Column(String(250))
+    user = relationship("User")
+
+class Message(Base):
+    __tablename__ = 'message'
+    id = Column(Integer, primary_key=True)
+    sender_id = Column(Integer, ForeignKey('user.id'))
+    receiver_id = Column(Integer, ForeignKey('user.id'))
+    content = Column(String(250))
+    sender = relationship("User")
+    receiver = relationship("User")
+
+class Post(Base):
+    __tablename__ = 'post'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    video_url = Column(String(250))
+    image_url = Column(String(250))
+    caption = Column(String(250))
+    user = relationship("User")
+    comments = relationship("Comment")
+    likes = relationship("Like")
+
+class Comment(Base):
+    __tablename__ = 'comment'
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, ForeignKey('post.id'))
+    user_id = Column(Integer, ForeignKey('user.id'))
+    content = Column(String(250))
+    post = relationship("Post")
+    user = relationship("User")
+
+class Like(Base):
+    __tablename__ = 'like'
+    id = Column(Integer, primary_key=True)
+    post_id = Column(Integer, ForeignKey('post.id'))
+    user_id = Column(Integer, ForeignKey('user.id'))
+    post = relationship("Post")
+    user = relationship("User")
+
 
 ## Draw from SQLAlchemy base
 try:
